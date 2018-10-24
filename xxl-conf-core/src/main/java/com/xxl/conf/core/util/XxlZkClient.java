@@ -1,16 +1,21 @@
 package com.xxl.conf.core.util;
 
-import com.xxl.conf.core.exception.XxlConfException;
-import org.apache.zookeeper.*;
-import org.apache.zookeeper.data.Stat;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
+
+import org.apache.zookeeper.CreateMode;
+import org.apache.zookeeper.WatchedEvent;
+import org.apache.zookeeper.Watcher;
+import org.apache.zookeeper.ZooDefs;
+import org.apache.zookeeper.ZooKeeper;
+import org.apache.zookeeper.data.Stat;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.xxl.conf.core.exception.XxlConfException;
 
 
 /**
@@ -89,6 +94,8 @@ public class XxlZkClient {
 	public ZooKeeper getClient(){
 		if (zooKeeper==null) {
 			try {
+//				如果当前获得锁的线程在做大量耗时的工作，使用lock.lock()方法申请锁的线程会一直阻塞，这样就降低了多线程的效率。
+//				而使用tryLock()方法申请锁，如果锁不可用则线程不会阻塞，转而可以去做其他工作。代码实例如下：
 				if (INSTANCE_INIT_LOCK.tryLock(2, TimeUnit.SECONDS)) {
 					if (zooKeeper==null) {		// 二次校验，防止并发创建client
 						try {
